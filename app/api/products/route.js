@@ -166,23 +166,3 @@ export async function DELETE(request) {
   }
 }
 
-// Add this new function to handle all HTTP methods
-export async function handler(request) {
-  // Get the HTTP method
-  const method = request.method
-
-  // Route the request to the appropriate function
-  switch (method) {
-    case "GET":
-      return GET(request)
-    case "POST":
-      return POST(request)
-    case "PUT":
-      return PUT(request)
-    case "DELETE":
-      return DELETE(request)
-    default:
-      return NextResponse.json({ error: "Method not allowed" }, { status: 405 })
-  }
-}
-
