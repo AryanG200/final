@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "ignoreCommand": "npm run lint",
+  "outputDirectory": ".next"
+} 

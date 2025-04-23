@@ -25,10 +25,10 @@ export default function About() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Our Story</h2>
             <p className="text-gray-600 mb-4">
-              Founded in 1998, Ambika Novelty began as a small stationery shop with a big dream: to bring joy and creativity into people's lives. Over the years, we’ve grown into a beloved destination for unique gifts, personalized stationery, and thoughtful novelties.
+              Founded in 1998, Ambika Novelty began as a small stationery shop with a big dream: to bring joy and creativity into people&apos;s lives. Over the years, we&apos;ve grown into a beloved destination for unique gifts, personalized stationery, and thoughtful novelties.
             </p>
             <p className="text-gray-600">
-              Our journey has been guided by a simple philosophy: every product should tell a story, and every gift should create a memory. From school supplies to office essentials and special occasion gifts, we’ve curated a collection that reflects our commitment to quality and creativity.
+              Our journey has been guided by a simple philosophy: every product should tell a story, and every gift should create a memory. From school supplies to office essentials and special occasion gifts, we&apos;ve curated a collection that reflects our commitment to quality and creativity.
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export default function About() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Our Mission</h2>
             <p className="text-gray-600">
-              At Ambika Novelty, our mission is to inspire creativity and celebrate life’s special moments. We believe that every gift, no matter how small, has the power to make someone’s day brighter. That’s why we’re dedicated to offering products that are not only beautiful but also meaningful.
+              At Ambika Novelty, our mission is to inspire creativity and celebrate life&apos;s special moments. We believe that every gift, no matter how small, has the power to make someone&apos;s day brighter. That&apos;s why we&apos;re dedicated to offering products that are not only beautiful but also meaningful.
             </p>
           </div>
 
@@ -72,7 +72,7 @@ export default function About() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-2 text-gray-900">Customer First</h3>
                 <p className="text-gray-600">
-                  Your satisfaction is our priority. We’re here to make every experience delightful.
+                  Your satisfaction is our priority. We&apos;re here to make every experience delightful.
                 </p>
               </div>
             </div>
