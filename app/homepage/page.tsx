@@ -133,17 +133,7 @@ export default function AmbikaNoveltySite() {
                   <span className="relative z-10">Explore Collection</span>
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
                 </motion.button>
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: "0 15px 30px -10px rgba(109, 40, 217, 0.3)",
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-white text-violet-700 border-2 border-violet-500 px-8 py-4 rounded-full text-xl font-semibold shadow-md transition-all duration-300 font-serif"
-                  onClick={() => window.location.href = "/special-offers"}
-                >
-                  Special Offers
-                </motion.button>
+                
               </motion.div>
               
               {/* Social proof */}
@@ -205,13 +195,7 @@ export default function AmbikaNoveltySite() {
                   </div>
                   
                   {/* Floating badges */}
-                  <motion.div 
-                    className="absolute top-4 right-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white py-1 px-3 rounded-full text-sm font-bold shadow-lg font-serif"
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    New!
-                  </motion.div>
+                 
                   <motion.div 
                     className="absolute bottom-4 left-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-1 px-3 rounded-full text-sm font-bold shadow-lg font-serif"
                     animate={{ y: [0, 5, 0] }}
@@ -452,23 +436,7 @@ export default function AmbikaNoveltySite() {
         </motion.section>
 
         {/* Enhanced Limited Time Offer Banner */}
-        <section className="mb-16 backdrop-blur-xl bg-gradient-to-r from-yellow-100/70 via-orange-100/70 to-pink-100/70 p-12 rounded-2xl border border-yellow-200/50 shadow-xl transform hover:scale-[1.02] transition-transform duration-300">
-          <div className="container mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-center md:text-left mb-6 md:mb-0">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2 font-serif">Limited Time Offer!</h2>
-                <p className="text-lg text-gray-600 font-serif">Get an extra 10% off on your first purchase</p>
-                <p className="text-sm text-gray-500 mt-2 font-serif">Use code: WELCOME10</p>
-              </div>
-              <button
-                onClick={() => window.location.href = "http://localhost:3000/products"}
-                className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transform hover:scale-105 transition-all duration-200 font-serif"
-              >
-                Shop Now
-              </button>
-            </div>
-          </div>
-        </section>
+        
       </main>
 
       <StationeryGiftChatBot />

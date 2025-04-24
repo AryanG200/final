@@ -2,8 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+.font-roboto {
+  font-family: 'Roboto', sans-serif;
 }
 
 @layer utilities {
@@ -98,7 +108,7 @@ body {
 
 @keyframes slideIn {
   from {
-    transform: translateY(100%);
+    transform: translateY(100px);
     opacity: 0;
   }
   to {
@@ -117,7 +127,7 @@ body {
 }
 
 .animate-slideIn {
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.3s ease-out forwards;
 }
 
 .animate-fadeIn {

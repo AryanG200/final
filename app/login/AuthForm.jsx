@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import styles from "../../styles/AuthForm.module.css"
@@ -12,14 +12,9 @@ export default function AuthForm() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDarkMode)
-  }, [isDarkMode])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -84,23 +79,15 @@ export default function AuthForm() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-purple-100 via-purple-50 to-pink-50 ${isDarkMode ? "dark" : ""}`}>
+    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-purple-50 to-pink-50">
       <Header />
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-md mx-auto bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-purple-100">
           <div className="px-8 pt-8 pb-10">
-            <div className="flex justify-between items-center mb-8">
+            <div className="mb-8">
               <h2 className="text-4xl font-semibold text-gray-800">
                 {isRegister ? "Create Account" : "Welcome Back"}
               </h2>
-              <button
-                type="button"
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2.5 rounded-full bg-purple-50 hover:bg-purple-100 transition-colors"
-                aria-label="Toggle dark mode"
-              >
-                {isDarkMode ? "☀️" : "🌙"}
-              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

@@ -110,6 +110,13 @@ export default function ProductPage() {
 
     // Add/remove from cart
     addToCart(productWithId, isIncrement);
+    
+    // Show toast notification
+    if (isIncrement) {
+      showPopup("Item added to your cart.");
+    } else if (productQuantities[productWithId.id] > 1) {
+      showPopup("Item quantity updated.");
+    }
 
     // Reset animation after 1 second
     setTimeout(() => {

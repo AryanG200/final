@@ -57,7 +57,8 @@ export default function Payment() {
         throw new Error(errorData.error || "Failed to send email");
       }
 
-      alert("Order placed successfully! An email invoice has been sent to your email address.");
+      // Success will be shown in the combined alert
+      console.log("Email invoice sent successfully");
     } catch (error) {
       console.error("Email Error:", error);
       alert(`Failed to send email: ${error.message}`);
@@ -67,27 +68,41 @@ export default function Payment() {
   // Add this function after sendEmailInvoice
   const sendWhatsAppNotification = async (orderDetails) => {
     try {
+      // Get the phone number from the input field
+      const phoneNumber = phone.trim();
+      
+      if (!phoneNumber) {
+        console.error("Phone number is required for WhatsApp notification");
+        return;
+      }
+      
       const response = await fetch("/api/send-whatsapp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone,
+          phone: phoneNumber,
           orderDetails: {
             totalAmount: orderDetails.total,
+            total: orderDetails.total,
             paymentMethod: orderDetails.paymentMethod,
+            cart: orderDetails.cart,
             customer: {
               name: `${firstName} ${lastName}`,
-              phone: phone
+              phone: phoneNumber
             }
           }
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to send WhatsApp notification");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send WhatsApp notification");
       }
+      
+      console.log("WhatsApp notification sent successfully");
     } catch (error) {
       console.error("WhatsApp Error:", error);
+      alert(`Failed to send WhatsApp notification: ${error.message}`);
     }
   };
 
@@ -130,6 +145,19 @@ export default function Payment() {
 
   // Handle checkout based on the selected payment method
   const handleCheckout = async () => {
+    // Validate required fields
+    if (!firstName || !lastName || !email || !street || !city || !state || !zipcode || !country || !phone) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\+?[0-9]{10,13}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      alert("Please enter a valid phone number (10-13 digits)");
+      return;
+    }
+
     if (paymentMethod === "razorpay") {
       const res = await loadRazorpay();
 
@@ -167,6 +195,7 @@ export default function Payment() {
               sendEmailInvoice({ email, total, paymentMethod, cart }),
               sendWhatsAppNotification({ email, total, paymentMethod, cart })
             ]);
+            alert("Order placed successfully! You will receive order details via email and WhatsApp.");
             clearCart();
             router.push("/");
           },
@@ -190,8 +219,9 @@ export default function Payment() {
         await createOrder();
         await Promise.all([
           sendEmailInvoice({ email, total, paymentMethod, cart }),
-          sendWhatsAppNotification({ total, paymentMethod })
+          sendWhatsAppNotification({ total, paymentMethod, cart })
         ]);
+        alert("Order placed successfully! You will receive order details via email and WhatsApp.");
         clearCart();
         router.push("/");
       } catch (error) {
@@ -263,7 +293,7 @@ export default function Payment() {
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   type="text"
-                  placeholder="Zipcode"
+                  placeholder="Postal/ZIP code"
                   className="w-full border-gray-200"
                   value={zipcode}
                   onChange={(e) => setZipcode(e.target.value)}
@@ -278,10 +308,11 @@ export default function Payment() {
               </div>
               <Input
                 type="tel"
-                placeholder="Phone"
+                placeholder="WhatsApp Number (e.g. 9123456789)"
                 className="w-full border-gray-200"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                required
               />
             </form>
           </div>
@@ -300,9 +331,7 @@ export default function Payment() {
               <RadioGroup defaultValue="razorpay" onValueChange={setPaymentMethod} className="space-y-4">
                 <div className="flex items-center space-x-4 border rounded-lg p-4">
                   <RadioGroupItem value="razorpay" id="razorpay" />
-                  <Label htmlFor="razorpay">
-                    <Image src="/images/razorpay.png" alt="Razorpay" width={80} height={30} />
-                  </Label>
+                  <Label htmlFor="razorpay">CARD/NETBANKING/UPI</Label>
                 </div>
 
                 <div className="flex items-center space-x-4 border rounded-lg p-4">
