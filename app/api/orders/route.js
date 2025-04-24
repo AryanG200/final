@@ -2,13 +2,24 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb"; // Import ObjectId for handling MongoDB IDs
 
-export async function GET() {
+export async function GET(req) {
   try {
     const client = await clientPromise;
     const db = client.db("User");
+    
+    // Get the email from query parameters
+    const { searchParams } = new URL(req.url);
+    const email = searchParams.get("email");
+    
+    let query = {};
+    
+    // If email is provided, filter orders by customer email
+    if (email) {
+      query = { "customer.email": email };
+    }
 
-    // Fetch all orders from `orders` collection
-    const orders = await db.collection("orders").find({}).toArray();
+    // Fetch orders with the applied filter
+    const orders = await db.collection("orders").find(query).toArray();
 
     return NextResponse.json({ orders }, { status: 200 });
   } catch (error) {
