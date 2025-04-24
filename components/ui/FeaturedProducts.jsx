@@ -37,7 +37,7 @@ export default function FeaturedProducts() {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-64 object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-64 object-contain p-4 rounded-t-xl transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-2 right-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium text-white 

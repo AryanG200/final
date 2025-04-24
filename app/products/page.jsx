@@ -149,33 +149,41 @@ export default function ProductPage() {
                   ✕
                 </button>
               </div>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex flex-col gap-2">
-                  <div className="relative">
-                    <Image
-                      src={selectedProduct.images?.[selectedImage] || "/placeholder.svg"}
-                      alt={`${selectedProduct.name} - View ${selectedImage + 1}`}
-                      width={400}
-                      height={400}
-                      className="rounded-lg object-cover w-full h-[300px]"
-                    />
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-1 flex flex-col gap-4">
+                  <div className="relative aspect-square bg-white rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 p-8">
+                      <Image
+                        src={selectedProduct.images?.[selectedImage] || "/placeholder.svg"}
+                        alt={`${selectedProduct.name} - View ${selectedImage + 1}`}
+                        layout="fill"
+                        objectFit="contain"
+                        className="transition-transform duration-500 hover:scale-105"
+                        style={{ 
+                          mixBlendMode: 'multiply',
+                          filter: 'contrast(1.05) brightness(1.05)'
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-5 gap-3">
                     {selectedProduct.images?.map((img, index) => (
                       <div
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
-                          selectedImage === index ? "border-black" : "border-transparent"
+                        className={`relative aspect-square bg-white rounded-lg overflow-hidden cursor-pointer transition-transform hover:scale-105 ${
+                          selectedImage === index ? 'ring-2 ring-purple-600 ring-offset-2' : 'border border-gray-200'
                         }`}
                       >
-                        <Image
-                          src={img || "/placeholder.svg"}
-                          alt={`${selectedProduct.name} - Thumbnail ${index + 1}`}
-                          width={80}
-                          height={80}
-                          className="object-cover w-full h-[60px]"
-                        />
+                        <div className="absolute inset-0 p-2">
+                          <Image
+                            src={img || "/placeholder.svg"}
+                            alt={`${selectedProduct.name} - Thumbnail ${index + 1}`}
+                            layout="fill"
+                            objectFit="contain"
+                            style={{ mixBlendMode: 'multiply' }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -193,7 +201,7 @@ export default function ProductPage() {
                       setSelectedProduct(null);
                       setSelectedImage(0);
                     }}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded hover:from-purple-700 hover:to-pink-700"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
                   >
                     Add to Cart
                   </button>
@@ -244,24 +252,30 @@ export default function ProductPage() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 container mx-auto px-4 py-12">
           {sortedProducts.map((product) => (
-            <Card key={product.id} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-0">
+            <Card key={product.id} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 h-full flex flex-col">
+              <CardContent className="p-0 flex-1">
                 <div 
-                  className="relative aspect-square cursor-pointer"
+                  className="relative aspect-square bg-white cursor-pointer"
                   onClick={() => setSelectedProduct(product)}
                   role="button"
                   tabIndex={0}
                   aria-label={`View details of ${product.name}`}
                 >
-                  <Image
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    layout="fill"
-                    objectFit="cover"
-                    className="transition-transform duration-500 group-hover:scale-110"
-                  />
+                  <div className="absolute inset-0 p-6">
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      layout="fill"
+                      objectFit="contain"
+                      className="transition-transform duration-500 group-hover:scale-110"
+                      style={{ 
+                        mixBlendMode: 'multiply',
+                        filter: 'contrast(1.05) brightness(1.05)'
+                      }}
+                    />
+                  </div>
                   {product.stock === "Out of Stock" && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm">
                       <p className="text-white font-medium flex items-center px-4 py-2 bg-red-500/80 rounded-lg">
@@ -273,64 +287,68 @@ export default function ProductPage() {
                 </div>
               </CardContent>
 
-              <CardFooter className="p-6 grid gap-4">
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-lg mb-1">{product.name}</h3>
-                  <p className="text-purple-600 font-bold">{formatPrice(product.price)}</p>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="flex-1 flex items-center gap-2">
-                    {productQuantities[product.id] > 0 ? (
-                      <>
-                        <Button
-                          size="icon"
-                          className="bg-purple-600 hover:bg-purple-700 h-10 w-10 relative"
-                          onClick={() => handleAddToCart(product, false)}
-                        >
-                          -
-                        </Button>
-                        <span className="font-medium">{productQuantities[product.id] || 0}</span>
-                        <Button
-                          size="icon"
-                          className="bg-purple-600 hover:bg-purple-700 h-10 w-10 relative"
-                          onClick={() => handleAddToCart(product)}
-                        >
-                          +
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        className="w-full bg-purple-600 hover:bg-purple-700 transition-colors relative"
-                        onClick={() => handleAddToCart(product)}
-                        disabled={product.stock === "Out of Stock"}
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add to Cart
-                      </Button>
-                    )}
-                    {cartAnimations[product.id] && (
-                      <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-ping">
-                        {cartAnimations[product.id]}
-                      </span>
-                    )}
+              <CardFooter className="p-6 bg-gradient-to-b from-white to-gray-50/50">
+                <div className="w-full space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-lg mb-1 group-hover:text-purple-600 transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-purple-600 font-bold">{formatPrice(product.price)}</p>
                   </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => toggleWishlist(product)}
-                    className="border-2 hover:bg-pink-50 transition-colors"
-                    aria-label={`Add ${product.name} to wishlist`}
-                  >
-                    <Heart
-                      className={`h-5 w-5 transition-colors ${
-                        wishlistItems.some((item) => item.id === product.id)
-                          ? "fill-current text-pink-500"
-                          : "text-gray-400"
-                      }`}
-                    />
-                  </Button>
+
+                  <div className="flex gap-3">
+                    <div className="flex-1 flex items-center gap-2">
+                      {productQuantities[product.id] > 0 ? (
+                        <>
+                          <Button
+                            size="icon"
+                            className="bg-purple-600 hover:bg-purple-700 h-10 w-10 relative"
+                            onClick={() => handleAddToCart(product, false)}
+                          >
+                            -
+                          </Button>
+                          <span className="font-medium">{productQuantities[product.id] || 0}</span>
+                          <Button
+                            size="icon"
+                            className="bg-purple-600 hover:bg-purple-700 h-10 w-10 relative"
+                            onClick={() => handleAddToCart(product)}
+                          >
+                            +
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-300 transform hover:scale-105"
+                          onClick={() => handleAddToCart(product)}
+                          disabled={product.stock === "Out of Stock"}
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Add to Cart
+                        </Button>
+                      )}
+                      {cartAnimations[product.id] && (
+                        <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-ping">
+                          {cartAnimations[product.id]}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => toggleWishlist(product)}
+                      className="border-2 hover:bg-pink-50 transition-colors"
+                      aria-label={`Add ${product.name} to wishlist`}
+                    >
+                      <Heart
+                        className={`h-5 w-5 transition-colors ${
+                          wishlistItems.some((item) => item.id === product.id)
+                            ? "fill-current text-pink-500"
+                            : "text-gray-400"
+                        }`}
+                      />
+                    </Button>
+                  </div>
                 </div>
               </CardFooter>
             </Card>
