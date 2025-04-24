@@ -189,22 +189,6 @@ export default function UserDashboard() {
                 animate={{ scale: 1 }} 
                 className="flex flex-col items-center mb-8"
               >
-                <div className="relative mb-4">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white/30 shadow-lg">
-                    <img 
-                      src={session?.user?.image || "/default-avatar.png"} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                    <motion.div 
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity rounded-full" 
-                      whileHover={{ opacity: 1 }}
-                    >
-                      <FiEdit2 size={24} />
-                    </motion.div>
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-400 border-2 border-white" />
-                </div>
                 <h3 className="text-xl font-semibold">{session?.user?.name}</h3>
                 <p className="text-white/80 text-sm">{session?.user?.email}</p>
                 <div className="flex gap-6 mt-4">

@@ -65,47 +65,6 @@ export default function Payment() {
     }
   };
 
-  // Add this function after sendEmailInvoice
-  const sendWhatsAppNotification = async (orderDetails) => {
-    try {
-      // Get the phone number from the input field
-      const phoneNumber = phone.trim();
-      
-      if (!phoneNumber) {
-        console.error("Phone number is required for WhatsApp notification");
-        return;
-      }
-      
-      const response = await fetch("/api/send-whatsapp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: phoneNumber,
-          orderDetails: {
-            totalAmount: orderDetails.total,
-            total: orderDetails.total,
-            paymentMethod: orderDetails.paymentMethod,
-            cart: orderDetails.cart,
-            customer: {
-              name: `${firstName} ${lastName}`,
-              phone: phoneNumber
-            }
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send WhatsApp notification");
-      }
-      
-      console.log("WhatsApp notification sent successfully");
-    } catch (error) {
-      console.error("WhatsApp Error:", error);
-      alert(`Failed to send WhatsApp notification: ${error.message}`);
-    }
-  };
-
   // Create an order in the database
   const createOrder = async () => {
     const orderDetails = {
@@ -191,11 +150,8 @@ export default function Payment() {
           description: "Thank you for shopping with us!",
           handler: async function (response) {
             await createOrder();
-            await Promise.all([
-              sendEmailInvoice({ email, total, paymentMethod, cart }),
-              sendWhatsAppNotification({ email, total, paymentMethod, cart })
-            ]);
-            alert("Order placed successfully! You will receive order details via email and WhatsApp.");
+            await sendEmailInvoice({ email, total, paymentMethod, cart });
+            alert("Order placed successfully! You will receive order details via email.");
             clearCart();
             router.push("/");
           },
@@ -217,11 +173,8 @@ export default function Payment() {
       // Handle Cash on Delivery
       try {
         await createOrder();
-        await Promise.all([
-          sendEmailInvoice({ email, total, paymentMethod, cart }),
-          sendWhatsAppNotification({ total, paymentMethod, cart })
-        ]);
-        alert("Order placed successfully! You will receive order details via email and WhatsApp.");
+        await sendEmailInvoice({ email, total, paymentMethod, cart });
+        alert("Order placed successfully! You will receive order details via email.");
         clearCart();
         router.push("/");
       } catch (error) {
@@ -308,7 +261,7 @@ export default function Payment() {
               </div>
               <Input
                 type="tel"
-                placeholder="WhatsApp Number (e.g. 9123456789)"
+                placeholder="Phone Number (e.g. 9123456789)"
                 className="w-full border-gray-200"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
