@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, CheckCircle, AlertCircle, ShoppingCart } from "lucide-react";
 import { useCart } from "../contexts/cartContext";
+import { useWishlist } from "../contexts/wishlistContext";
 import Header from "../head/foot/Header";
 import Footer from "../head/foot/Footer";
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,8 @@ export default function ProductPage() {
   const [products, setProducts] = useState([]);
   const [filters, setFilters] = useState([]);
   const [sortOrder, setSortOrder] = useState("default");
-  const [wishlistItems, setWishlistItems] = useState([]);
   const { cart, addToCart } = useCart();
+  const { wishlist, toggleWishlistItem, isInWishlist } = useWishlist();
   const [popup, setPopup] = useState({ visible: false, message: "" });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -35,7 +36,12 @@ export default function ProductPage() {
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched products:", data.products); // Debugging
-        setProducts(data.products || []);
+        // Ensure each product has a unique ID
+        const productsWithIds = (data.products || []).map(product => ({
+          ...product,
+          id: product.id || `product-${Math.random().toString(36).substr(2, 9)}`
+        }));
+        setProducts(productsWithIds);
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
@@ -51,21 +57,14 @@ export default function ProductPage() {
     setFilters(category === "All" ? [] : [category]);
   };
 
-  const toggleWishlist = (product) => {
-    setWishlistItems((prev) => {
-      const isInWishlist = prev.some((item) => item.id === product.id);
-      const newWishlist = isInWishlist
-        ? prev.filter((item) => item.id !== product.id)
-        : [...prev, { ...product, stock: "In Stock" }];
-
-      showPopup(
-        isInWishlist
-          ? "Item removed from your wishlist."
-          : "Item added to your wishlist."
-      );
-
-      return newWishlist;
-    });
+  const handleWishlistToggle = (product) => {
+    toggleWishlistItem(product);
+    
+    const message = isInWishlist(product.id) 
+      ? "Item removed from your wishlist."
+      : "Item added to your wishlist.";
+    
+    showPopup(message);
   };
 
   const showPopup = (message) => {
@@ -343,13 +342,13 @@ export default function ProductPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => toggleWishlist(product)}
+                      onClick={() => handleWishlistToggle(product)}
                       className="border-2 hover:bg-pink-50 transition-colors"
                       aria-label={`Add ${product.name} to wishlist`}
                     >
                       <Heart
                         className={`h-5 w-5 transition-colors ${
-                          wishlistItems.some((item) => item.id === product.id)
+                          isInWishlist(product.id)
                             ? "fill-current text-pink-500"
                             : "text-gray-400"
                         }`}
