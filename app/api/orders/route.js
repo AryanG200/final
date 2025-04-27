@@ -18,8 +18,8 @@ export async function GET(req) {
       query = { "customer.email": email };
     }
 
-    // Fetch orders with the applied filter
-    const orders = await db.collection("orders").find(query).toArray();
+    // Fetch orders with the applied filter and sort by createdAt in descending order (newest first)
+    const orders = await db.collection("orders").find(query).sort({ createdAt: -1 }).toArray();
 
     return NextResponse.json({ orders }, { status: 200 });
   } catch (error) {

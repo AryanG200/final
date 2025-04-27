@@ -219,12 +219,12 @@ export default function UserDashboard() {
                         {order.products.map((product) => (
                           <div key={product.productId} className="flex justify-between text-sm">
                             <span>{product.name} × {product.quantity}</span>
-                            <span className="font-medium">${(product.price * product.quantity).toFixed(2)}</span>
+                            <span className="font-medium">₹{(product.price * product.quantity).toFixed(2)}</span>
                           </div>
                         ))}
                         <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-medium">
                           <span>Total</span>
-                          <span>${parseFloat(order.totalAmount).toFixed(2)}</span>
+                          <span>₹{parseFloat(order.totalAmount).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>

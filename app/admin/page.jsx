@@ -469,7 +469,7 @@ export default function AdminDashboard() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${parseFloat(order.totalAmount).toFixed(2)}
+                      ₹{parseFloat(order.totalAmount).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span 
