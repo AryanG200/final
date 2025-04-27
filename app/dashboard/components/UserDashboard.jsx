@@ -143,6 +143,126 @@ export default function UserDashboard() {
     exit: { opacity: 0, y: -20 },
   };
 
+  const renderOrderHistory = () => {
+    if (orders.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <div className="flex flex-col items-center">
+            <FiShoppingBag className="text-6xl mb-4 text-indigo-300" />
+            <h3 className="text-2xl font-medium text-gray-800 mb-2">No orders yet</h3>
+            <p className="text-gray-600 mb-6">
+              Start shopping to see your orders here
+            </p>
+            <Link href="/products" className="btn btn-primary">
+              Browse Products
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div className="overflow-auto">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="mb-6 bg-white shadow-md rounded-xl overflow-hidden border border-gray-100"
+            >
+              <div className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                  <div>
+                    <span className="text-xs text-gray-500">Order ID: {order._id}</span>
+                    <h3 className="text-lg font-semibold mt-1">
+                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </h3>
+                  </div>
+                  <div className="mt-2 sm:mt-0 flex items-center">
+                    <span 
+                      className={`px-3 py-1 rounded-full text-xs font-medium 
+                        ${order.status === "Delivered" 
+                          ? "bg-green-100 text-green-800" 
+                          : order.status === "Cancelled" 
+                          ? "bg-red-100 text-red-800" 
+                          : order.status === "In Transit" 
+                          ? "bg-blue-100 text-blue-800" 
+                          : order.status === "Out for Delivery" 
+                          ? "bg-purple-100 text-purple-800" 
+                          : order.status === "Processing" 
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-yellow-100 text-yellow-800"
+                        }`}
+                    >
+                      {order.status}
+                    </span>
+                    
+                    {order.status === "Pending" && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="ml-3 text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-2">Order Details</h4>
+                      <div className="space-y-1">
+                        {order.products.map((product) => (
+                          <div key={product.productId} className="flex justify-between text-sm">
+                            <span>{product.name} × {product.quantity}</span>
+                            <span className="font-medium">${(product.price * product.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                        <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-medium">
+                          <span>Total</span>
+                          <span>${parseFloat(order.totalAmount).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-2">Shipping Address</h4>
+                      <p className="text-sm">{order.customer.address}</p>
+                      
+                      {/* Order Status Timeline */}
+                      <h4 className="text-sm font-medium text-gray-500 mt-4 mb-2">Order Status Timeline</h4>
+                      <div className="space-y-2">
+                        {order.statusHistory && order.statusHistory.length > 0 ? (
+                          order.statusHistory.map((history, index) => (
+                            <div key={index} className="flex items-start">
+                              <div className="h-4 w-4 rounded-full bg-indigo-400 mt-1 mr-2"></div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{history.status}</p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(history.timestamp).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">Status history not available</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (status === "loading") {
     return <div>Loading...</div>;
   }
@@ -364,73 +484,7 @@ export default function UserDashboard() {
                       Order History
                     </h2>
                     
-                    {orders.length === 0 ? (
-                      <motion.div 
-                        className="text-center py-16 bg-white/50 backdrop-blur-xl rounded-2xl shadow-md"
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }}
-                      >
-                        <FiShoppingBag size={64} className="mx-auto text-purple-400 mb-4" />
-                        <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Orders Yet</h3>
-                        <p className="text-gray-600 mb-6">Start shopping to see your orders here</p>
-                        <Link href="/products">
-                          <motion.button
-                            className="bg-gradient-to-r from-violet-600 to-pink-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:shadow-lg transition-shadow"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Explore Collection
-                          </motion.button>
-                        </Link>
-                      </motion.div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {orders.map((order) => (
-                          <motion.div 
-                            key={order._id} 
-                            className="backdrop-blur-xl bg-white/50 rounded-2xl p-6 shadow-md"
-                            whileHover={{ y: -4 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="font-semibold">Order #{order._id.substring(order._id.length - 6)}</h3>
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                order.status === "Cancelled" 
-                                  ? "bg-red-100 text-red-700" 
-                                  : "bg-green-100 text-green-700"
-                              }`}>
-                                {order.status}
-                              </span>
-                            </div>
-                            <div className="space-y-2 mb-4">
-                              <p><span className="text-gray-600">Total:</span> <span className="font-medium">₹{order.totalAmount}</span></p>
-                              <p><span className="text-gray-600">Payment Method:</span> <span className="font-medium">{order.paymentMethod}</span></p>
-                              <p><span className="text-gray-600">Date:</span> <span className="font-medium">{new Date(order.createdAt).toLocaleDateString()}</span></p>
-                            </div>
-                            <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                              <h4 className="font-medium mb-2">Products:</h4>
-                              <div className="space-y-1">
-                                {order.products.map((product) => (
-                                  <div key={product.productId} className="text-sm">
-                                    {product.name} <span className="text-gray-600">(Qty: {product.quantity})</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            {order.status !== "Cancelled" && (
-                              <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="w-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors px-4 py-2 rounded-xl flex items-center justify-center gap-2"
-                                onClick={() => handleCancelOrder(order._id)}
-                              >
-                                <FiXCircle /> Cancel Order
-                              </motion.button>
-                            )}
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
+                    {renderOrderHistory()}
                   </div>
                 )}
 

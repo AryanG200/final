@@ -18,7 +18,17 @@ const orderSchema = new mongoose.Schema({
   ],
   totalAmount: { type: Number, required: true },
   paymentMethod: { type: String, required: true },
-  status: { type: String, default: "Pending" },
+  status: { 
+    type: String, 
+    enum: ["Pending", "Processing", "In Transit", "Out for Delivery", "Delivered", "Cancelled"],
+    default: "Pending" 
+  },
+  statusHistory: [
+    {
+      status: { type: String },
+      timestamp: { type: Date, default: Date.now }
+    }
+  ],
   createdAt: { type: Date, default: Date.now },
 });
 

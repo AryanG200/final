@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
-  const [orders, setOrders] = useState([]); // Add orders state
+  const [orders, setOrders] = useState([]);
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -52,6 +52,7 @@ export default function AdminDashboard() {
       averageOrderValue: 0,
     }
   });
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     const loggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
     if (loggedIn) {
       fetchUsers();
       fetchProducts();
-      fetchOrders(); // Fetch orders
+      fetchOrders();
     }
   }, []);
 
@@ -120,7 +121,6 @@ export default function AdminDashboard() {
       console.error("Error fetching orders:", error);
     }
   };
-  
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -414,310 +414,426 @@ export default function AdminDashboard() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+  // Handle order status change
+  const handleOrderStatusChange = async (orderId, status) => {
+    try {
+      const response = await fetch(`/api/orders?id=${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
 
-      <main className="flex-grow container mx-auto px-4 py-8">
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update order status");
+      }
+
+      alert("Order status updated successfully");
+      fetchOrders(); // Refresh orders after update
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Failed to update order status: " + error.message);
+    }
+  };
+
+  // New function to render orders management UI
+  const renderOrdersManagement = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-semibold mb-6">Order Management</h2>
+      
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order._id.substring(0, 8)}...</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{order.customer.name}</div>
+                      <div className="text-sm text-gray-500">{order.customer.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ${parseFloat(order.totalAmount).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span 
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          order.status === "Delivered" 
+                            ? "bg-green-100 text-green-800" 
+                            : order.status === "Cancelled" 
+                            ? "bg-red-100 text-red-800" 
+                            : order.status === "In Transit" 
+                            ? "bg-blue-100 text-blue-800" 
+                            : order.status === "Out for Delivery" 
+                            ? "bg-purple-100 text-purple-800" 
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <select 
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value={order.status}
+                        onChange={(e) => handleOrderStatusChange(order._id, e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Processing">Processing</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                    No orders found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+      <div className="container mx-auto py-6 px-4">
         {!isLoggedIn ? (
-          <div className="max-w-md mx-auto">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Admin Login</h1>
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@gmail.com"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                {error && (
-                  <p className="text-red-500 text-sm bg-red-50 p-3 rounded-md border border-red-200">{error}</p>
-                )}
-                <button
-                  type="submit"
-                  className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-300"
-                >
-                  Login
-                </button>
-              </form>
-            </div>
+          <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+            <h1 className="text-2xl font-semibold mb-6">Admin Login</h1>
+            <form onSubmit={handleLogin}>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@gmail.com"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              {error && (
+                <p className="text-red-500 text-sm bg-red-50 p-3 rounded-md border border-red-200">{error}</p>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-300"
+              >
+                Login
+              </button>
+            </form>
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto">
+          <div>
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition"
               >
-                {isLoggingOut ? "Logging out..." : "Logout"}
+                Logout
               </button>
             </div>
-
-            {renderDashboardMetrics()}
-            {renderAnalyticsCharts()}
             
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <h2 className="text-xl font-semibold mb-4">Users</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td className="px-6 py-4">#{user.id.substring(user.id.length - 6)}</td>
-                        <td className="px-6 py-4">{user.name}</td>
-                        <td className="px-6 py-4">{user.email}</td>
-                        <td className="px-6 py-4">{new Date(user.createdAt).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <h2 className="text-xl font-semibold mb-4">Orders</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {orders.map((order) => (
-                      <tr key={order._id}>
-                        <td className="px-6 py-4">#{order._id.substring(order._id.length - 6)}</td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <p>{order.customer.name}</p>
-                            <p>{order.customer.email}</p>
-                            <p>{order.customer.phone}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {order.products.map((product) => (
-                            <div key={product.productId}>
-                              <p>{product.name} (Qty: {product.quantity})</p>
-                            </div>
-                          ))}
-                        </td>
-                        <td className="px-6 py-4">₹{order.totalAmount}</td>
-                        <td className="px-6 py-4">
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                            {order.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <h2 className="text-xl font-semibold mb-4">Products</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {products.map((product) => (
-                      <tr key={product._id}>
-                        <td className="px-6 py-4">
-                          <img
-                            src={product.image || "/placeholder.svg"}
-                            alt={product.name}
-                            className="h-16 w-16 object-cover rounded"
-                          />
-                        </td>
-                        <td className="px-6 py-4">{product.name}</td>
-                        <td className="px-6 py-4">{product.category}</td>
-                        <td className="px-6 py-4">₹{product.price}</td>
-                        <td className="px-6 py-4">{product.quantity}</td>
-                        <td className="px-6 py-4">
-                          <button
-                            onClick={() => handleEditProduct(product)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product._id)}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-6">{formTitle}</h2>
-              <form onSubmit={handleSubmitProduct} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                    <input
-                      type="text"
-                      value={productData.name}
-                      onChange={(e) => setProductData({ ...productData, name: e.target.value })}
-                      placeholder="Enter product name"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                      value={productData.description}
-                      onChange={(e) => setProductData({ ...productData, description: e.target.value })}
-                      placeholder="Enter product description"
-                      className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
-                    <input
-                      type="number"
-                      value={productData.price}
-                      onChange={(e) => setProductData({ ...productData, price: e.target.value })}
-                      placeholder="0.00"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      value={productData.quantity}
-                      onChange={(e) => setProductData({ ...productData, quantity: e.target.value })}
-                      placeholder="Enter quantity"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <input
-                      type="text"
-                      value={productData.category}
-                      onChange={(e) => setProductData({ ...productData, category: e.target.value })}
-                      placeholder="Enter category"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageChange(e.target.files[0])}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center">
-                      {imagePreview ? (
-                        <img
-                          src={imagePreview || "/placeholder.svg"}
-                          alt="Preview"
-                          className="max-h-40 object-contain"
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <Plus className="mx-auto h-12 w-12 text-gray-400" />
-                          <p className="mt-1 text-sm text-gray-500">Upload image</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
+            <div className="mb-8">
+              <nav className="flex border-b border-gray-200">
                 <button
-                  type="submit"
-                  className="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 focus:ring-2 focus:ring-green-300"
+                  onClick={() => setActiveTab("dashboard")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "dashboard"
+                      ? "border-b-2 border-indigo-500 text-indigo-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  {submitButtonText}
+                  Dashboard
                 </button>
-                {isEditing && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false)
-                      setEditingProduct(null)
-                      setProductData({
-                        name: "",
-                        description: "",
-                        price: "",
-                        quantity: "",
-                        category: "",
-                        image: null,
-                      })
-                      setImagePreview(null)
-                      setFormTitle("Add New Product")
-                      setSubmitButtonText("Add Product")
-                    }}
-                    className="w-full bg-gray-300 text-gray-800 p-3 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-300 mt-2"
-                  >
-                    Cancel Editing
-                  </button>
-                )}
-              </form>
+                <button
+                  onClick={() => setActiveTab("products")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "products"
+                      ? "border-b-2 border-indigo-500 text-indigo-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Products
+                </button>
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "orders"
+                      ? "border-b-2 border-indigo-500 text-indigo-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Orders
+                </button>
+                <button
+                  onClick={() => setActiveTab("users")}
+                  className={`px-4 py-2 text-sm font-medium ${
+                    activeTab === "users"
+                      ? "border-b-2 border-indigo-500 text-indigo-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Users
+                </button>
+              </nav>
             </div>
+            
+            {activeTab === "dashboard" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {renderDashboardMetrics()}
+                {renderAnalyticsCharts()}
+              </div>
+            )}
+            
+            {activeTab === "products" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">{formTitle}</h2>
+                    <form onSubmit={handleSubmitProduct} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                          <input
+                            type="text"
+                            value={productData.name}
+                            onChange={(e) => setProductData({ ...productData, name: e.target.value })}
+                            placeholder="Enter product name"
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <textarea
+                            value={productData.description}
+                            onChange={(e) => setProductData({ ...productData, description: e.target.value })}
+                            placeholder="Enter product description"
+                            className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                          <input
+                            type="number"
+                            value={productData.price}
+                            onChange={(e) => setProductData({ ...productData, price: e.target.value })}
+                            placeholder="0.00"
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                          <input
+                            type="number"
+                            value={productData.quantity}
+                            onChange={(e) => setProductData({ ...productData, quantity: e.target.value })}
+                            placeholder="Enter quantity"
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                          <input
+                            type="text"
+                            value={productData.category}
+                            onChange={(e) => setProductData({ ...productData, category: e.target.value })}
+                            placeholder="Enter category"
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageChange(e.target.files[0])}
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center">
+                            {imagePreview ? (
+                              <img
+                                src={imagePreview || "/placeholder.svg"}
+                                alt="Preview"
+                                className="max-h-40 object-contain"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <Plus className="mx-auto h-12 w-12 text-gray-400" />
+                                <p className="mt-1 text-sm text-gray-500">Upload image</p>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 focus:ring-2 focus:ring-green-300"
+                      >
+                        {submitButtonText}
+                      </button>
+                      {isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditing(false)
+                            setEditingProduct(null)
+                            setProductData({
+                              name: "",
+                              description: "",
+                              price: "",
+                              quantity: "",
+                              category: "",
+                              image: null,
+                            })
+                            setImagePreview(null)
+                            setFormTitle("Add New Product")
+                            setSubmitButtonText("Add Product")
+                          }}
+                          className="w-full bg-gray-300 text-gray-800 p-3 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-300 mt-2"
+                        >
+                          Cancel Editing
+                        </button>
+                      )}
+                    </form>
+                  </div>
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4">Product List</h2>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead>
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {products.map((product) => (
+                            <tr key={product._id}>
+                              <td className="px-6 py-4">
+                                <img
+                                  src={product.image || "/placeholder.svg"}
+                                  alt={product.name}
+                                  className="h-16 w-16 object-cover rounded"
+                                />
+                              </td>
+                              <td className="px-6 py-4">{product.name}</td>
+                              <td className="px-6 py-4">{product.category}</td>
+                              <td className="px-6 py-4">₹{product.price}</td>
+                              <td className="px-6 py-4">{product.quantity}</td>
+                              <td className="px-6 py-4">
+                                <button
+                                  onClick={() => handleEditProduct(product)}
+                                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteProduct(product._id)}
+                                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === "orders" && renderOrdersManagement()}
+            
+            {activeTab === "users" && (
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4">User Management</h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td className="px-6 py-4">#{user.id.substring(user.id.length - 6)}</td>
+                          <td className="px-6 py-4">{user.name}</td>
+                          <td className="px-6 py-4">{user.email}</td>
+                          <td className="px-6 py-4">{new Date(user.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
-      </main>
-
+      </div>
       <Footer />
     </div>
   )

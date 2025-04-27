@@ -52,6 +52,7 @@ export async function POST(req) {
       totalAmount,
       paymentMethod,
       status: "Pending",
+      statusHistory: [{ status: "Pending", timestamp: new Date() }],
       createdAt: new Date(),
     });
 
@@ -78,6 +79,53 @@ export async function POST(req) {
   }
 }
 
+export async function PUT(req) {
+  try {
+    const client = await clientPromise;
+    const db = client.db("User");
+
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get("id");
+    
+    if (!orderId) {
+      return NextResponse.json({ message: "Order ID is required" }, { status: 400 });
+    }
+
+    const { status } = await req.json();
+    
+    if (!status) {
+      return NextResponse.json({ message: "Status is required" }, { status: 400 });
+    }
+
+    // Validate status
+    const validStatuses = ["Pending", "Processing", "In Transit", "Out for Delivery", "Delivered", "Cancelled"];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json({ message: "Invalid status value" }, { status: 400 });
+    }
+
+    // Update the order status
+    const result = await db.collection("orders").updateOne(
+      { _id: new ObjectId(orderId) },
+      { 
+        $set: { status },
+        $push: { statusHistory: { status, timestamp: new Date() }}
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Order status updated successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    return NextResponse.json(
+      { message: "Failed to update order status", error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(req) {
   try {
     const client = await clientPromise;
@@ -93,7 +141,10 @@ export async function DELETE(req) {
     // Update the order status to "Cancelled"
     const result = await db.collection("orders").updateOne(
       { _id: new ObjectId(orderId) },
-      { $set: { status: "Cancelled" } }
+      { 
+        $set: { status: "Cancelled" },
+        $push: { statusHistory: { status: "Cancelled", timestamp: new Date() }}
+      }
     );
 
     if (result.modifiedCount === 0) {
