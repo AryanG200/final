@@ -65,12 +65,7 @@ export default function Header() {
           <span className="sr-only">Wishlist</span>
         </Button>
       </Link>
-      <Link href="/admin" passHref>
-        <Button variant="ghost" size="icon">
-          <Shield className="h-5 w-5 text-red-600" />
-          <span className="sr-only">Admin Page</span>
-        </Button>
-      </Link>
+      
     </div>
   </div>
 </header>
